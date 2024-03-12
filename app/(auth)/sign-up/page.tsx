@@ -1,17 +1,17 @@
+import UserRegisterForm from "@/components/forms/user-register-form";
+import { buttonVariants } from "@/components/ui/button";
+import getUserSession from "@/lib/get-session";
+import { cn } from "@/lib/utils";
 import { Metadata } from "next";
 import Link from "next/link";
-import UserAuthForm from "@/components/forms/user-auth-form";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import getUserSession from "@/lib/get-session";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Authentication",
-  description: "Authentication forms built using the components.",
+  title: "Register",
+  description: "Create a new account to access your dashboard.",
 };
 
-export default async function AuthenticationPage() {
+export default async function RegisterPage() {
   const { data } = await getUserSession();
 
   if (data.session) {
@@ -61,13 +61,13 @@ export default async function AuthenticationPage() {
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Login to your account
+              Register for an account
             </h1>
             <p className="text-sm text-muted-foreground">
-              Enter your credentials to access your account
+              Create a new account to access your dashboard
             </p>
           </div>
-          <UserAuthForm />
+          <UserRegisterForm />
           <p className="px-8 text-center text-sm text-muted-foreground">
             By clicking continue, you agree to our{" "}
             <Link

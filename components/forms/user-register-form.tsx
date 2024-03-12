@@ -1,5 +1,5 @@
 "use client";
-import { signInWithEmailAndPassword } from "@/app/actions";
+import { signUpWithEmailAndPassword } from "@/app/actions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Form,
@@ -15,36 +15,46 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { Loader } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { toast } from "../ui/use-toast";
 
-const formSchema = z.object({
-  email: z
-    .string({
-      required_error: "Email is required",
-    })
-    .email({ message: "Enter a valid email address" }),
-  password: z
-    .string({
-      required_error: "Password is required",
-    })
-    .min(3, { message: "Password must be at least 3 characters long" }),
-});
+const formSchema = z
+  .object({
+    email: z
+      .string({
+        required_error: "Email is required",
+      })
+      .email({ message: "Enter a valid email address" }),
+    password: z
+      .string({
+        required_error: "Password is required",
+      })
+      .min(8, { message: "Password must be at least 8 characters long" }),
+    passwordConfirmation: z.string({
+      required_error: "Password confirmation is required",
+    }),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    message: "Passwords do not match",
+    path: ["passwordConfirmation"],
+  });
 
 type UserFormValue = z.infer<typeof formSchema>;
 
-export default function UserAuthForm() {
-  const [loading, startTransition] = useTransition();
+export default function UserRegisterForm() {
+  let [loading, startTransition] = useTransition();
   const [isActive, setIsActive] = useState<Boolean>(false);
+  const router = useRouter();
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
   });
 
   const onSubmit = (data: UserFormValue) => {
     startTransition(async () => {
-      const result = await signInWithEmailAndPassword(data);
+      const result = await signUpWithEmailAndPassword(data);
       const { error } = JSON.parse(result);
       if (error?.message) {
         toast({
@@ -57,6 +67,10 @@ export default function UserAuthForm() {
           title: "Success",
           description: "User created successfully",
         });
+      }
+
+      if (!error) {
+        router.push("/");
       }
     });
   };
@@ -118,6 +132,38 @@ export default function UserAuthForm() {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="passwordConfirmation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Confirm Password</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type={isActive ? "text" : "password"}
+                      placeholder="Enter your password..."
+                      disabled={loading}
+                      {...field}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="absolute inset-y-0 right-0"
+                      onClick={() => setIsActive(!isActive)}
+                    >
+                      {isActive ? (
+                        <EyeClosedIcon fontSize={16} />
+                      ) : (
+                        <EyeOpenIcon fontSize={16} />
+                      )}
+                    </Button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <Button disabled={loading} className="ml-auto w-full" type="submit">
             <Loader
@@ -126,20 +172,17 @@ export default function UserAuthForm() {
                 loading ? "block" : "hidden",
               )}
             />
-            <span>Login</span>
+            <span>Register</span>
           </Button>
         </form>
       </Form>
       <div className="relative">
         <div className="relative flex items-center justify-center text-sm">
           <span className="bg-background text-muted-foreground">
-            Don't have an account?
+            Have an account?
           </span>
-          <Link
-            href="/sign-up"
-            className={cn(buttonVariants({ variant: "link" }))}
-          >
-            Sign up
+          <Link href="/" className={cn(buttonVariants({ variant: "link" }))}>
+            Login
           </Link>
         </div>
       </div>
